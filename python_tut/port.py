@@ -2,14 +2,15 @@
 
 import csv
 
-def portfolio_cost(filename, *, errors='warn'):
+def read_portfolio(filename, *, errors='warn'):
     '''
-    Computes total shares*price for a CSV file with name, date, shares, price data
+    Read a CSV file with name, date, shares, price data into a list
     '''
     if errors not in {'warn', 'silent', 'raise'}:
         raise ValueError("errors must be one of 'warn', 'silent', 'raise'")
 
-    total = 0.0
+    portfolio = []                  # List of records
+
     with open(filename, 'r') as f:
         rows = csv.reader(f)
         headers = next(rows)        # Skip the header row
@@ -17,7 +18,6 @@ def portfolio_cost(filename, *, errors='warn'):
             try:
                 row[2] = int(row[2])
                 row[3] = float(row[3])
-                total += row[2]*row[3]
             except ValueError as err:    # Catches all errors (dangerous)
                 if errors == 'warn':
                     print('Row:', rowno, 'Bad row:', row)
@@ -26,7 +26,19 @@ def portfolio_cost(filename, *, errors='warn'):
                     raise           # Reraises the last exception
                 else:
                     pass            # Ignore
-    return total
+            record = {
+                'name': row[0],
+                'date': row[1],
+                'shares': row[2],
+                'price': row[3]
+            }
+            portfolio.append(record)
+    return portfolio
 
-total = portfolio_cost('Data/missing.csv', errors='silent')
+portfolio = read_portfolio('Data/portfolio.csv')
+
+total = 0.0
+for holding in portfolio:
+    total += holding['shares'] * holding['price']   # shares * price
+
 print('Total cost:', total)
